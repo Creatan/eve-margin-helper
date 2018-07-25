@@ -1,14 +1,16 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"os"
 
 	"github.com/fsnotify/fsnotify"
 )
 
-const logPath = "./test"
-
 func main() {
+	logPath := os.Getenv("USERPROFILE") + "\\Documents\\EVE\\logs\\Marketlogs"
+	fmt.Println("Listening to: ", logPath)
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		log.Fatal(err)
