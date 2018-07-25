@@ -23,7 +23,9 @@ func main() {
 		for {
 			select {
 			case event := <-watcher.Events:
-				log.Println("event:", event)
+				if event.Op.String() == "CREATE" || event.Op.String() == "WRITE" {
+					log.Println("event:", event.Name)
+				}
 			case err := <-watcher.Errors:
 				log.Println("error:", err)
 			}
