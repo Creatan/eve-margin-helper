@@ -57,7 +57,7 @@ func main() {
 		for {
 			select {
 			case event := <-watcher.Events:
-				if event.Op.String() == "CREATE" {
+				if event.Op.String() == "WRITE" {
 					if lastFile != event.Name {
 						log.Println("Found new file:", event.Name)
 						f, err := os.Open(event.Name)
