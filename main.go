@@ -53,80 +53,75 @@ func main() {
 	done := make(chan bool)
 
 	go func() {
-		var lastFile string
 		for {
 			select {
 			case event := <-watcher.Events:
 				if event.Op.String() == "WRITE" {
-					if lastFile != event.Name {
-						log.Println("Found new file:", event.Name)
-						f, err := os.Open(event.Name)
-						if err != nil {
-							log.Printf("Read error: %v %v\n", event.Name, err)
-						}
-						defer f.Close()
-
-						var sell []float64
-						var buy []float64
-						reader := csv.NewReader(bufio.NewReader(f))
-						reader.FieldsPerRecord = 15
-						lineCount := 0
-						for {
-							if lineCount == 0 {
-								//skip header
-								lineCount++
-								continue
-							}
-
-							line, err := reader.Read()
-							if err == io.EOF {
-								break
-							}
-							if len(line) == 0 {
-								continue
-							}
-							if len(line) < 10 {
-								log.Println("faulty", line)
-								continue
-							}
-							if err != nil {
-								log.Println("Error reading line", err)
-							}
-
-							lineCount++
-
-							//only care about Jita 4-4 now
-							if line[10] != "60003760" {
-								continue
-							}
-
-							price, err := strconv.ParseFloat(line[0], 64)
-							if err != nil {
-								log.Println("Error parsing price", line[0], err)
-							}
-
-							if line[7] == "True" {
-								buy = append(buy, price)
-							} else {
-								sell = append(sell, price)
-							}
-						}
-						//find max buy and min sell
-						sellOrder, err := min(sell)
-						log.Println("Sell", sellOrder)
-						if err != nil {
-							log.Println("Error finding sell order value", err)
-						}
-
-						buyOrder, err := max(buy)
-						if err != nil {
-							log.Println("Error finding buy order value", err)
-						}
-
-						log.Println("Buy", buyOrder)
-
+					log.Println("Found new file:", event.Name)
+					f, err := os.Open(event.Name)
+					if err != nil {
+						log.Printf("Read error: %v %v\n", event.Name, err)
 					}
-					lastFile = event.Name
+					defer f.Close()
+
+					var sell []float64
+					var buy []float64
+					reader := csv.NewReader(bufio.NewReader(f))
+					reader.FieldsPerRecord = 15
+					lineCount := 0
+					for {
+						if lineCount == 0 {
+							//skip header
+							lineCount++
+							continue
+						}
+
+						line, err := reader.Read()
+						if err == io.EOF {
+							break
+						}
+						if len(line) == 0 {
+							continue
+						}
+						if len(line) < 10 {
+							log.Println("faulty", line)
+							continue
+						}
+						if err != nil {
+							log.Println("Error reading line", err)
+						}
+
+						lineCount++
+
+						//only care about Jita 4-4 now
+						if line[10] != "60003760" {
+							continue
+						}
+
+						price, err := strconv.ParseFloat(line[0], 64)
+						if err != nil {
+							log.Println("Error parsing price", line[0], err)
+						}
+
+						if line[7] == "True" {
+							buy = append(buy, price)
+						} else {
+							sell = append(sell, price)
+						}
+					}
+					//find max buy and min sell
+					sellOrder, err := min(sell)
+					log.Println("Sell", sellOrder)
+					if err != nil {
+						log.Println("Error finding sell order value", err)
+					}
+
+					buyOrder, err := max(buy)
+					if err != nil {
+						log.Println("Error finding buy order value", err)
+					}
+
+					log.Println("Buy", buyOrder)
 				}
 			case err := <-watcher.Errors:
 				log.Println("error:", err)
