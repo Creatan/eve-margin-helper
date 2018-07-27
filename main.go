@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -11,6 +12,34 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 )
+
+func max(values []float64) (max float64, err error) {
+	if len(values) == 0 {
+		return 0, errors.New("Slice is empty")
+	}
+
+	max = values[0]
+	for _, v := range values {
+		if v > max {
+			max = v
+		}
+	}
+	return max, nil
+}
+
+func min(values []float64) (min float64, err error) {
+	if len(values) == 0 {
+		return 0, errors.New("Slice is empty")
+	}
+
+	min = values[0]
+	for _, v := range values {
+		if v < min {
+			min = v
+		}
+	}
+	return min, nil
+}
 
 func main() {
 	logPath := os.Getenv("USERPROFILE") + "\\Documents\\EVE\\logs\\Marketlogs"
@@ -82,6 +111,19 @@ func main() {
 								sell = append(sell, price)
 							}
 						}
+						//find max buy and min sell
+						sellOrder, err := min(sell)
+						log.Println("Sell", sellOrder)
+						if err != nil {
+							log.Println("Error finding sell order value", err)
+						}
+
+						buyOrder, err := max(buy)
+						if err != nil {
+							log.Println("Error finding buy order value", err)
+						}
+
+						log.Println("Buy", buyOrder)
 
 					}
 					lastFile = event.Name
