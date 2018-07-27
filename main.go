@@ -1,10 +1,13 @@
 package main
 
 import (
+	"bufio"
 	"encoding/csv"
 	"fmt"
+	"io"
 	"log"
 	"os"
+	"strconv"
 
 	"github.com/fsnotify/fsnotify"
 )
@@ -27,34 +30,56 @@ func main() {
 			case event := <-watcher.Events:
 				if event.Op.String() == "CREATE" {
 					if lastFile != event.Name {
+						log.Println("Found new file:", event.Name)
 						f, err := os.Open(event.Name)
 						if err != nil {
 							log.Printf("Read error: %v %v\n", event.Name, err)
 						}
 						defer f.Close()
 
-						var sell [][]string
-						var buy [][]string
-						lines, err := csv.NewReader(f).ReadAll()
-						if err != nil {
-							log.Println("Error reading lines", err)
-						}
-
-						for i, line := range lines {
-							if i == 0 {
+						var sell []float64
+						var buy []float64
+						reader := csv.NewReader(bufio.NewReader(f))
+						reader.FieldsPerRecord = 15
+						lineCount := 0
+						for {
+							if lineCount == 0 {
 								//skip header
+								lineCount++
 								continue
 							}
+
+							line, err := reader.Read()
+							if err == io.EOF {
+								break
+							}
+							if len(line) == 0 {
+								continue
+							}
+							if len(line) < 10 {
+								log.Println("faulty", line)
+								continue
+							}
+							if err != nil {
+								log.Println("Error reading line", err)
+							}
+
+							lineCount++
 
 							//only care about Jita 4-4 now
 							if line[10] != "60003760" {
 								continue
 							}
 
+							price, err := strconv.ParseFloat(line[0], 64)
+							if err != nil {
+								log.Println("Error parsing price", line[0], err)
+							}
+
 							if line[7] == "True" {
-								buy = append(buy, line)
+								buy = append(buy, price)
 							} else {
-								sell = append(sell, line)
+								sell = append(sell, price)
 							}
 						}
 
