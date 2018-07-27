@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/csv"
 	"errors"
+	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -42,6 +43,14 @@ func min(values []float64) (min float64, err error) {
 }
 
 func main() {
+	taxPer := flag.Float64("tax", 2.0, "Tax percentage after modifiers")
+	feePer := flag.Float64("fee", 3.0, "Broker's fee percentage after modifiers")
+
+	flag.Parse()
+	//convert percentages to decimals for calculations
+	taxValue := *taxPer / 100
+	feeValue := *feePer / 100
+
 	logPath := os.Getenv("USERPROFILE") + "\\Documents\\EVE\\logs\\Marketlogs"
 	fmt.Println("Listening to: ", logPath)
 	watcher, err := fsnotify.NewWatcher()
@@ -121,7 +130,17 @@ func main() {
 						log.Println("Error finding buy order value", err)
 					}
 
-					log.Println("Buy", buyOrder)
+					fees := (buyOrder * feeValue) + (sellOrder * feeValue)
+					taxes := sellOrder * taxValue
+					profit := sellOrder - fees - taxes - buyOrder
+					profitPer := (profit / sellOrder) * 100
+
+					log.Printf("Sell %.2f\n", sellOrder)
+					log.Printf("Buy %.2f\n", buyOrder)
+					log.Printf("Fees %.2f\n", fees)
+					log.Printf("Taxes %.2f\n", taxes)
+					log.Printf("Profit %.2f\n", profit)
+					log.Printf("Profit %% %.2f\n", profitPer)
 				}
 			case err := <-watcher.Errors:
 				log.Println("error:", err)
