@@ -11,6 +11,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/atotto/clipboard"
 	humanize "github.com/dustin/go-humanize"
 	"github.com/fsnotify/fsnotify"
 )
@@ -141,6 +142,10 @@ func main() {
 					log.Println("Taxes", humanize.FormatFloat("# ###,##", taxes))
 					log.Println("Profit", humanize.FormatFloat("# ###,##", profit))
 					log.Printf("Profit %% %.2f\n", profitPer)
+					err = clipboard.WriteAll(humanize.FormatFloat("####.##", buyOrder+*increment))
+					if err != nil {
+						log.Println("Error copying to clipboard", err)
+					}
 				}
 			case err := <-watcher.Errors:
 				log.Println("error:", err)
