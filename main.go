@@ -11,6 +11,7 @@ import (
 	"os"
 	"strconv"
 
+	humanize "github.com/dustin/go-humanize"
 	"github.com/fsnotify/fsnotify"
 )
 
@@ -120,7 +121,6 @@ func main() {
 					}
 					//find max buy and min sell
 					sellOrder, err := min(sell)
-					log.Println("Sell", sellOrder)
 					if err != nil {
 						log.Println("Error finding sell order value", err)
 					}
@@ -135,11 +135,11 @@ func main() {
 					profit := sellOrder - fees - taxes - buyOrder
 					profitPer := (profit / sellOrder) * 100
 
-					log.Printf("Sell %.2f\n", sellOrder)
-					log.Printf("Buy %.2f\n", buyOrder)
-					log.Printf("Fees %.2f\n", fees)
-					log.Printf("Taxes %.2f\n", taxes)
-					log.Printf("Profit %.2f\n", profit)
+					log.Println("Sell", humanize.FormatFloat("# ###,##", sellOrder))
+					log.Println("Buy", humanize.FormatFloat("# ###,##", buyOrder))
+					log.Println("Fees", humanize.FormatFloat("# ###,##", fees))
+					log.Println("Taxes", humanize.FormatFloat("# ###,##", taxes))
+					log.Println("Profit", humanize.FormatFloat("# ###,##", profit))
 					log.Printf("Profit %% %.2f\n", profitPer)
 				}
 			case err := <-watcher.Errors:
