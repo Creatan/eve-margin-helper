@@ -9,6 +9,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"path/filepath"
 	"strconv"
 
 	"github.com/atotto/clipboard"
@@ -44,16 +45,51 @@ func min(values []float64) (min float64, err error) {
 	return min, nil
 }
 
+func removeFiles(path string) error {
+	dir, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer dir.Close()
+
+	names, err := dir.Readdirnames(-1)
+	if err != nil {
+		return err
+	}
+
+	for _, name := range names {
+		err = os.Remove(filepath.Join(path, name))
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+
+}
 func main() {
+	logPath := os.Getenv("USERPROFILE") + "\\Documents\\EVE\\logs\\Marketlogs"
 	taxPer := flag.Float64("tax", 2.0, "Tax percentage after modifiers")
 	feePer := flag.Float64("fee", 3.0, "Broker's fee percentage after modifiers")
+	increment := flag.Float64("increment", 0.01, "Increment to overcut other buy orders")
 
 	flag.Parse()
+	//clear
+	args := flag.Args()
+	if len(args) != 0 {
+		if args[0] == "clean" {
+			err := removeFiles(logPath)
+			if err != nil {
+				log.Fatal("Error clearing log directory", err)
+			}
+			os.Exit(0)
+		}
+	}
+
 	//convert percentages to decimals for calculations
 	taxValue := *taxPer / 100
 	feeValue := *feePer / 100
 
-	logPath := os.Getenv("USERPROFILE") + "\\Documents\\EVE\\logs\\Marketlogs"
 	fmt.Println("Listening to: ", logPath)
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
