@@ -1,5 +1,5 @@
 # Eve Margin Helper 
-Station trading profit margin calculator
+Station trading profit margin calculator for windows
 
 ## Usage
 
@@ -16,3 +16,8 @@ You can also issue a `clean` command for removing old log files
 ```
 emh clean
 ```
+
+## macOS and Linux
+
+Install Go and build with 
+`go build -o <outputfile>`
